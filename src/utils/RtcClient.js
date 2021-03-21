@@ -5,6 +5,6 @@ export default class RtcClient {
     }
     this.rtcPeerConection = new RTCPeerConnection(config)
     this.localPeerName = ''
-    this.RemotePeerName = ''
+    this.remotePeerName = ''
   }
 }
