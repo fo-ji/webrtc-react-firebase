@@ -19,11 +19,38 @@ export default class RtcClient {
 
   async getUserMedia() {
     try {
-      const constraints = { auto: true, video: true }
+      const constraints = { audio: true, video: true }
       this.mediaStream = await navigator.mediaDevices.getUserMedia(constraints)
     } catch (error) {
       console.log('error: ', error)
     }
+  }
+
+  async setMediaStream() {
+    await this.getUserMedia()
+    this.addTracks()
+    this.setRtcClient()
+  }
+
+  addTracks() {
+    this.addAudioTrack()
+    this.addVideoTrack()
+  }
+
+  addAudioTrack() {
+    this.rtcPeerConection.addTrack(this.audioTrack, this.mediaStream)
+  }
+
+  addVideoTrack() {
+    this.rtcPeerConection.addTrack(this.videoTrack, this.mediaStream)
+  }
+
+  get audioTrack() {
+    return this.mediaStream.getAudioTracks()[0]
+  }
+
+  get videoTrack() {
+    return this.mediaStream.getVideoTracks()[0]
   }
 
   startListening(localPeerName) {
