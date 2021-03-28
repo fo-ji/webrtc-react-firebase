@@ -54,8 +54,8 @@ export default function SignIn({ rtcClient }) {
   }, [name])
 
   const initializeLocalPeer = useCallback(
-    (e) => {
-      rtcClient.startListening(name)
+    async (e) => {
+      await rtcClient.startListening(name)
       e.preventDefault()
     },
     [name, rtcClient]
@@ -80,11 +80,11 @@ export default function SignIn({ rtcClient }) {
             onChange={(e) => setName(e.target.value)}
             onCompositionEnd={() => setIsComposed(false)}
             onCompositionStart={() => setIsComposed(true)}
-            onKeyDown={(e) => {
+            onKeyDown={async (e) => {
               if (isComposed) return
               if (e.target.value === '') return
               if (e.key === 'Enter') {
-                initializeLocalPeer(e)
+                await initializeLocalPeer(e)
               }
             }}
             required
@@ -96,7 +96,7 @@ export default function SignIn({ rtcClient }) {
             color="primary"
             disabled={disabled}
             fullWidth
-            onClick={(e) => initializeLocalPeer(e)}
+            onClick={async (e) => await initializeLocalPeer(e)}
             type="submit"
             variant="contained"
           >
