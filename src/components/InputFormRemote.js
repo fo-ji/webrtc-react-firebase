@@ -54,8 +54,8 @@ export default function SignIn({ rtcClient }) {
   }, [name])
 
   const initializeRemotePeer = useCallback(
-    (e) => {
-      rtcClient.connect(name)
+    async (e) => {
+      await rtcClient.connect(name)
       e.preventDefault()
     },
     [name, rtcClient]
@@ -81,11 +81,11 @@ export default function SignIn({ rtcClient }) {
             onChange={(e) => setName(e.target.value)}
             onCompositionEnd={() => setIsComposed(false)}
             onCompositionStart={() => setIsComposed(true)}
-            onKeyDown={(e) => {
+            onKeyDown={async (e) => {
               if (isComposed) return
               if (e.target.value === '') return
               if (e.key === 'Enter') {
-                initializeRemotePeer(e)
+                await initializeRemotePeer(e)
               }
             }}
             required
@@ -97,7 +97,7 @@ export default function SignIn({ rtcClient }) {
             color="primary"
             disabled={disabled}
             fullWidth
-            onClick={(e) => initializeRemotePeer(e)}
+            onClick={async (e) => await initializeRemotePeer(e)}
             type="submit"
             variant="contained"
           >

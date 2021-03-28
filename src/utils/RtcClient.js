@@ -5,7 +5,7 @@ export default class RtcClient {
     const config = {
       iceServers: [{ urls: 'stun:stun.stunprotocol.org' }],
     }
-    this.rtcPeerConection = new RTCPeerConnection(config)
+    this.rtcPeerConnection = new RTCPeerConnection(config)
     this.firebaseSignallingClient = new FirebaseSignallingClient()
     this.localPeerName = ''
     this.remotePeerName = ''
@@ -39,11 +39,11 @@ export default class RtcClient {
   }
 
   addAudioTrack() {
-    this.rtcPeerConection.addTrack(this.audioTrack, this.mediaStream)
+    this.rtcPeerConnection.addTrack(this.audioTrack, this.mediaStream)
   }
 
   addVideoTrack() {
-    this.rtcPeerConection.addTrack(this.videoTrack, this.mediaStream)
+    this.rtcPeerConnection.addTrack(this.videoTrack, this.mediaStream)
   }
 
   get audioTrack() {
@@ -54,9 +54,40 @@ export default class RtcClient {
     return this.mediaStream.getVideoTracks()[0]
   }
 
-  setOnTrack() {
-    this.rtcPeerConection.ontrack = (rtcTrackEvent) => {
-      if (rtcTrackEvent.tarck.kind !== 'video') return
+  async offer() {
+    const sessionDescription = await this.createOffer()
+    await this.setLocalDescription(sessionDescription)
+    await this.sendOffer()
+  }
+
+  async createOffer() {
+    try {
+      return await this.rtcPeerConnection.createOffer()
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  async setLocalDescription(sessionDescription) {
+    try {
+      await this.rtcPeerConnection.setLocalDescription(sessionDescription)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  async sendOffer() {
+    this.firebaseSignallingClient.setPeerNames(
+      this.localPeerName,
+      this.remotePeerName
+    )
+
+    await this.firebaseSignallingClient.sendOffer(this.localDescription)
+  }
+
+  setOntrack() {
+    this.rtcPeerConnection.ontrack = (rtcTrackEvent) => {
+      if (rtcTrackEvent.track.kind !== 'video') return
 
       const remoteMediaStream = rtcTrackEvent.streams[0]
       this.remoteVideoRef.current.srcObject = remoteMediaStream
@@ -66,16 +97,22 @@ export default class RtcClient {
     this.setRtcClient()
   }
 
-  connect(remotePeerName) {
+  async connect(remotePeerName) {
     this.remotePeerName = remotePeerName
     this.setOnicecandidateCallback()
-    this.setOnTrack()
+    this.setOntrack()
+    await this.offer()
     this.setRtcClient()
   }
 
+  get localDescription() {
+    return this.rtcPeerConnection.localDescription.toJSON()
+  }
+
   setOnicecandidateCallback() {
-    this.rtcPeerConection.onicecandidate = ({ candidate }) => {
+    this.rtcPeerConnection.onicecandidate = ({ candidate }) => {
       if (candidate) {
+        console.log('candidate: ', candidate)
         // TODO: remoteへcandidateを通知する
       }
     }
