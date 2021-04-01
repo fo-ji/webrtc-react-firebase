@@ -6,6 +6,8 @@ const VideoRemote = ({ rtcClient }) => {
   // TODO: videoRef は rtcClient に持たせる
   const videoRef = rtcClient.remoteVideoRef
 
+  if (rtcClient.remotePeerName === '') return <></>
+
   return (
     <Video
       isLocal={false}
